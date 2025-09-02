@@ -4,6 +4,23 @@
  * 支持Canvas绘制和base64图片输出
  */
 
+// 微信小程序全局变量类型声明
+declare const wx:
+  | {
+      getSystemInfoSync?: () => any
+      createCanvasContext?: (canvasId: string) => any
+      [key: string]: any
+    }
+  | undefined
+
+// uniApp全局变量类型声明
+declare const uni:
+  | {
+      createCanvasContext?: (canvasId: string) => any
+      [key: string]: any
+    }
+  | undefined
+
 // 支持的条形码类型
 export type BarcodeType = 'CODE128' | 'CODE39' | 'EAN13'
 
@@ -655,16 +672,24 @@ export class BarcodeGenerator {
       margin,
     } = options
 
+    // 检查是否在微信小程序环境
+    if (this.isWeChatMiniProgram()) {
+      // 在微信小程序中，需要使用特殊方式生成base64
+      return this.generateBase64ForMiniProgram(barcodeData)
+    }
+
     // 创建离屏Canvas
     const canvas = this.createOffscreenCanvas(width, height)
     if (!canvas) {
-      // 如果无法创建Canvas，返回占位符
-      return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
+      // 如果无法创建Canvas，尝试使用备用方案
+      console.warn('无法创建Canvas，尝试使用备用方案生成base64')
+      return this.generateBase64Fallback(barcodeData)
     }
 
     const ctx = canvas.getContext('2d')
     if (!ctx) {
-      return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
+      console.warn('无法获取Canvas上下文，使用备用方案')
+      return this.generateBase64Fallback(barcodeData)
     }
 
     // 清除背景
@@ -751,8 +776,152 @@ export class BarcodeGenerator {
       return canvas.toDataURL('image/png')
     } catch (error) {
       console.warn('生成base64图片失败:', error)
+      return this.generateBase64Fallback(barcodeData)
+    }
+  }
+
+  /**
+   * 检查是否在微信小程序环境
+   */
+  private isWeChatMiniProgram(): boolean {
+    try {
+      // 检查是否在微信小程序环境
+      return typeof wx !== 'undefined' && wx?.getSystemInfoSync !== undefined
+    } catch (error) {
+      return false
+    }
+  }
+
+  /**
+   * 在微信小程序环境中生成base64
+   */
+  private generateBase64ForMiniProgram(barcodeData: BarcodeData): string {
+    try {
+      // 微信小程序中可以使用临时canvas来生成图片
+      // 这里使用算法生成一个简单的图片数据，然后转换为base64
+      return this.generateBase64WithDrawingAPI(barcodeData)
+    } catch (error) {
+      console.warn('微信小程序生成base64失败:', error)
+      return this.generateBase64Fallback(barcodeData)
+    }
+  }
+
+  /**
+   * 使用绘图API生成base64（兼容各种环境）
+   */
+  private generateBase64WithDrawingAPI(barcodeData: BarcodeData): string {
+    // 尝试使用uni-app的createCanvasContext
+    if (typeof uni !== 'undefined' && uni?.createCanvasContext) {
+      // 这里可以使用uni-app的canvas API
+      // 但需要用户提供canvas元素的id
+      console.warn(
+        'uni-app环境下需要使用drawOnCanvas方法在页面的canvas上绘制，无法直接生成base64'
+      )
+      return this.generateBase64Fallback(barcodeData)
+    }
+
+    // 其他情况使用备用方案
+    return this.generateBase64Fallback(barcodeData)
+  }
+
+  /**
+   * 备用的base64生成方案（使用算法生成简单的图片数据）
+   */
+  private generateBase64Fallback(barcodeData: BarcodeData): string {
+    try {
+      // 直接生成SVG格式的base64，因为SVG可以用文本生成，兼容性最好
+      return this.generateSVGBase64(barcodeData)
+    } catch (error) {
+      console.warn('备用base64生成方案失败:', error)
+      // 返回一个透明的像素作为占位符
       return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
     }
+  }
+
+  /**
+   * 兼容性的base64编码函数
+   * 支持浏览器和微信小程序环境
+   */
+  private encodeBase64(str: string): string {
+    // 在浏览器环境中使用btoa
+    if (typeof btoa !== 'undefined') {
+      return btoa(str)
+    }
+
+    // 在小程序环境中使用自实现的base64编码
+    const chars =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+    let result = ''
+    let i = 0
+
+    while (i < str.length) {
+      const a = str.charCodeAt(i++)
+      const b = i < str.length ? str.charCodeAt(i++) : 0
+      const c = i < str.length ? str.charCodeAt(i++) : 0
+
+      const bitmap = (a << 16) | (b << 8) | c
+
+      result += chars.charAt((bitmap >> 18) & 63)
+      result += chars.charAt((bitmap >> 12) & 63)
+      result += i - 2 < str.length ? chars.charAt((bitmap >> 6) & 63) : '='
+      result += i - 1 < str.length ? chars.charAt(bitmap & 63) : '='
+    }
+
+    return result
+  }
+
+  /**
+   * 生成SVG格式的base64
+   */
+  private generateSVGBase64(barcodeData: BarcodeData): string {
+    const { encoded, options, text } = barcodeData
+    const {
+      width,
+      height,
+      color,
+      backgroundColor,
+      displayText,
+      fontSize,
+      textColor,
+      margin,
+    } = options
+
+    // 计算条形码绘制参数
+    const textHeight = displayText ? fontSize + 10 : 0
+    const barcodeHeight = height - margin * 2 - textHeight
+    const availableWidth = width - margin * 2
+    const totalBars = encoded.length
+    const barWidth = Math.max(0.5, availableWidth / totalBars)
+
+    // 构建SVG内容
+    let svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`
+
+    // 背景
+    svgContent += `<rect width="${width}" height="${height}" fill="${backgroundColor}"/>`
+
+    // 绘制条形码
+    let currentX = margin
+    for (let i = 0; i < encoded.length; i++) {
+      if (encoded[i] === '1') {
+        svgContent += `<rect x="${currentX}" y="${margin}" width="${barWidth}" height="${barcodeHeight}" fill="${color}"/>`
+      }
+      currentX += barWidth
+    }
+
+    // 绘制文本
+    if (displayText) {
+      const textX = width / 2
+      const textY = margin + barcodeHeight + fontSize + 5
+      svgContent += `<text x="${textX}" y="${textY}" text-anchor="middle" font-family="Arial" font-size="${fontSize}" fill="${textColor}">${text}</text>`
+    }
+
+    svgContent += '</svg>'
+
+    // 转换为base64
+    const base64SVG = this.encodeBase64(
+      unescape(encodeURIComponent(svgContent))
+    )
+    return `data:image/svg+xml;base64,${base64SVG}`
   }
 
   /**

@@ -1,6 +1,6 @@
 {
   "name": "@innel/barcode",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "现代化条形码生成器 - 支持多种格式，兼容Web、H5和微信小程序环境",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
