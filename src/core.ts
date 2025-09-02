@@ -91,7 +91,7 @@ export type CanvasContext =
       fillText?: (text: string, x: number, y: number) => void
       rect?: (x: number, y: number, width: number, height: number) => void
       fill?: () => void
-      draw?: () => void
+      draw?: (reserve?: boolean, callback?: () => void) => void
       setFillStyle?: (color: string) => void
       setFontSize?: (size: number) => void
       setTextAlign?: (align: string) => void
@@ -100,6 +100,8 @@ export type CanvasContext =
         actualBoundingBoxDescent?: number
         width?: number
       }
+      // 添加更多小程序 Canvas 方法兼容
+      [key: string]: any
     }
 
 /**
@@ -1012,6 +1014,9 @@ export class BarcodeGenerator {
   ): void {
     if ('fillText' in ctx && typeof ctx.fillText === 'function') {
       ctx.fillText(text, x, y)
+    } else if ('fillText' in ctx && ctx.fillText) {
+      // 兼容旧版小程序Canvas API
+      ;(ctx as any).fillText(text, x, y)
     }
   }
 }
