@@ -524,7 +524,7 @@ export class BarcodeGenerator {
   }
 
   /**
-   * 小程序优化版本：绘制条形码到Canvas（解决比例问题）
+   * 小程序优化版本：绘制条形码到Canvas（解决比例问题，贴边显示）
    * @param ctx Canvas上下文
    * @param barcodeData 条形码数据
    * @param canvasWidth Canvas实际宽度（px）
@@ -537,60 +537,61 @@ export class BarcodeGenerator {
     canvasHeight: number
   ): void {
     const { encoded, options, text } = barcodeData
-    const { color, backgroundColor, displayText, fontSize, textColor, margin } =
-      options
+    const { color, backgroundColor, displayText, fontSize, textColor } = options
 
     // 清除背景
     this.setFillStyle(ctx, backgroundColor)
     this.fillRect(ctx, 0, 0, canvasWidth, canvasHeight)
 
-    // 计算文字区域
-    const textAreaHeight = displayText ? Math.max(fontSize * 1.5, 30) : 0
+    // 极致贴边设计 - 去掉所有不必要的边距
+    const horizontalMargin = 0 // 水平方向完全贴边
+    const verticalMargin = 2 // 垂直方向最小边距
 
-    // 使用更小的边距，让条形码更贴边
-    const actualMargin = Math.min(margin, 5) // 最大边距不超过5px
+    // 计算文字区域 - 优化文字空间
+    const actualFontSize = Math.max(12, Math.min(fontSize, 20)) // 限制字体大小范围
+    const textAreaHeight = displayText ? actualFontSize + 8 : 0 // 减少文字区域
 
-    // 计算条形码绘制区域
-    const barcodeHeight = canvasHeight - actualMargin * 2 - textAreaHeight
-    const barcodeY = actualMargin
-    const availableWidth = canvasWidth - actualMargin * 2
+    // 计算条形码绘制区域 - 最大化利用空间
+    const availableWidth = canvasWidth - horizontalMargin * 2
+    const barcodeHeight = canvasHeight - verticalMargin * 2 - textAreaHeight
+    const barcodeY = verticalMargin
     const totalBars = encoded.length
 
-    // 优化条宽计算，充分利用可用宽度
-    const idealBarWidth = availableWidth / totalBars
-    const barWidth = Math.max(1, Math.floor(idealBarWidth))
+    // 优化条宽计算 - 完全填满可用宽度
+    const exactBarWidth = availableWidth / totalBars
+    const baseBarWidth = Math.floor(exactBarWidth)
+    const remainder = availableWidth - baseBarWidth * totalBars
 
-    // 如果有剩余空间，尝试增加条宽以充分利用空间
-    const remainingWidth = availableWidth - totalBars * barWidth
-    const adjustedBarWidth =
-      remainingWidth > totalBars ? barWidth + 1 : barWidth
+    // 分配剩余像素，让条形码完全填满宽度
+    const wideBarsCount = Math.round(remainder)
 
-    const actualBarcodeWidth = totalBars * adjustedBarWidth
-
-    // 如果条形码宽度小于可用宽度，居中显示；否则贴边显示
-    const barcodeStartX =
-      actualBarcodeWidth < availableWidth
-        ? actualMargin + (availableWidth - actualBarcodeWidth) / 2
-        : actualMargin
-
-    // 绘制条形码
+    // 绘制条形码 - 完全贴边，无任何空隙
     this.setFillStyle(ctx, color)
-    let currentX = barcodeStartX
+    let currentX = horizontalMargin
+    let wideBarsUsed = 0
 
     for (let i = 0; i < encoded.length; i++) {
+      // 动态分配宽度，确保完全填满
+      const currentBarWidth =
+        baseBarWidth + (wideBarsUsed < wideBarsCount ? 1 : 0)
+
       if (encoded[i] === '1') {
-        this.fillRect(ctx, currentX, barcodeY, adjustedBarWidth, barcodeHeight)
+        this.fillRect(ctx, currentX, barcodeY, currentBarWidth, barcodeHeight)
       }
-      currentX += adjustedBarWidth
+
+      currentX += currentBarWidth
+      if (wideBarsUsed < wideBarsCount) {
+        wideBarsUsed++
+      }
     }
 
-    // 绘制文本
+    // 绘制文本 - 紧贴条形码底部
     if (displayText) {
       this.setFillStyle(ctx, textColor)
-      this.setFont(ctx, `${Math.max(fontSize, 16)}px Arial`)
+      this.setFont(ctx, `${actualFontSize}px Arial`)
       this.setTextAlign(ctx, 'center')
       const textX = canvasWidth / 2
-      const textY = barcodeY + barcodeHeight + fontSize + 10
+      const textY = barcodeY + barcodeHeight + actualFontSize + 4 // 最小间距
       this.fillText(ctx, text, textX, textY)
     }
 
