@@ -466,29 +466,45 @@ export class BarcodeGenerator {
     // 计算文字区域高度
     const textAreaHeight = displayText ? fontSize + 10 : 0
 
+    // 优化边距，减少不必要的空白
+    const actualMargin = Math.min(margin, 8) // 最大边距8px
+
     // 计算条形码绘制区域（修正比例计算）
-    const barcodeHeight = height - margin * 2 - textAreaHeight
-    const barcodeY = y + margin
-    const availableWidth = width - margin * 2
+    const barcodeHeight = height - actualMargin * 2 - textAreaHeight
+    const barcodeY = y + actualMargin
+    const availableWidth = width - actualMargin * 2
     const totalBars = encoded.length
 
-    // 修正条宽计算，确保比例正确
+    // 修正条宽计算，确保比例正确且充分利用空间
     const idealBarWidth = availableWidth / totalBars
-    const actualBarWidth = Math.max(1, Math.floor(idealBarWidth))
+    const baseBarWidth = Math.max(1, Math.floor(idealBarWidth))
+
+    // 如果有剩余像素，尝试分配给部分条形
+    const totalBaseWidth = totalBars * baseBarWidth
+    const remainingPixels = availableWidth - totalBaseWidth
 
     // 计算条形码实际宽度并居中
-    const actualBarcodeWidth = totalBars * actualBarWidth
-    const barcodeStartX = x + margin + (availableWidth - actualBarcodeWidth) / 2
+    const actualBarcodeWidth =
+      totalBaseWidth + Math.min(remainingPixels, totalBars)
+    const barcodeStartX =
+      x + actualMargin + Math.max(0, (availableWidth - actualBarcodeWidth) / 2)
 
     // 绘制条形码（居中对齐）
     this.setFillStyle(ctx, color)
     let currentX = barcodeStartX
+    let pixelsDistributed = 0
 
     for (let i = 0; i < encoded.length; i++) {
+      // 动态计算每个条的宽度，尽可能均匀分配剩余像素
+      const extraPixel = pixelsDistributed < remainingPixels ? 1 : 0
+      const currentBarWidth = baseBarWidth + extraPixel
+
       if (encoded[i] === '1') {
-        this.fillRect(ctx, currentX, barcodeY, actualBarWidth, barcodeHeight)
+        this.fillRect(ctx, currentX, barcodeY, currentBarWidth, barcodeHeight)
       }
-      currentX += actualBarWidth
+
+      currentX += currentBarWidth
+      if (extraPixel) pixelsDistributed++
     }
 
     // 绘制文本（修正位置计算）
@@ -531,16 +547,31 @@ export class BarcodeGenerator {
     // 计算文字区域
     const textAreaHeight = displayText ? Math.max(fontSize * 1.5, 30) : 0
 
+    // 使用更小的边距，让条形码更贴边
+    const actualMargin = Math.min(margin, 5) // 最大边距不超过5px
+
     // 计算条形码绘制区域
-    const barcodeHeight = canvasHeight - margin * 2 - textAreaHeight
-    const barcodeY = margin
-    const availableWidth = canvasWidth - margin * 2
+    const barcodeHeight = canvasHeight - actualMargin * 2 - textAreaHeight
+    const barcodeY = actualMargin
+    const availableWidth = canvasWidth - actualMargin * 2
     const totalBars = encoded.length
 
-    // 使用固定比例计算条宽
-    const barWidth = Math.max(2, Math.floor(availableWidth / totalBars))
-    const actualBarcodeWidth = totalBars * barWidth
-    const barcodeStartX = margin + (availableWidth - actualBarcodeWidth) / 2
+    // 优化条宽计算，充分利用可用宽度
+    const idealBarWidth = availableWidth / totalBars
+    const barWidth = Math.max(1, Math.floor(idealBarWidth))
+
+    // 如果有剩余空间，尝试增加条宽以充分利用空间
+    const remainingWidth = availableWidth - totalBars * barWidth
+    const adjustedBarWidth =
+      remainingWidth > totalBars ? barWidth + 1 : barWidth
+
+    const actualBarcodeWidth = totalBars * adjustedBarWidth
+
+    // 如果条形码宽度小于可用宽度，居中显示；否则贴边显示
+    const barcodeStartX =
+      actualBarcodeWidth < availableWidth
+        ? actualMargin + (availableWidth - actualBarcodeWidth) / 2
+        : actualMargin
 
     // 绘制条形码
     this.setFillStyle(ctx, color)
@@ -548,9 +579,9 @@ export class BarcodeGenerator {
 
     for (let i = 0; i < encoded.length; i++) {
       if (encoded[i] === '1') {
-        this.fillRect(ctx, currentX, barcodeY, barWidth, barcodeHeight)
+        this.fillRect(ctx, currentX, barcodeY, adjustedBarWidth, barcodeHeight)
       }
-      currentX += barWidth
+      currentX += adjustedBarWidth
     }
 
     // 绘制文本
