@@ -463,14 +463,18 @@ export class BarcodeGenerator {
     this.setFillStyle(ctx, backgroundColor)
     this.fillRect(ctx, x, y, width, height)
 
-    // 计算条形码绘制区域
-    const barcodeHeight = displayText
-      ? height - fontSize - 10
-      : height - margin * 2
+    // 计算文字区域高度
+    const textAreaHeight = displayText ? fontSize + 10 : 0
+
+    // 计算条形码绘制区域（修正比例计算）
+    const barcodeHeight = height - margin * 2 - textAreaHeight
     const barcodeY = y + margin
     const availableWidth = width - margin * 2
     const totalBars = encoded.length
-    const actualBarWidth = Math.max(1, Math.floor(availableWidth / totalBars))
+
+    // 修正条宽计算，确保比例正确
+    const idealBarWidth = availableWidth / totalBars
+    const actualBarWidth = Math.max(1, Math.floor(idealBarWidth))
 
     // 计算条形码实际宽度并居中
     const actualBarcodeWidth = totalBars * actualBarWidth
@@ -487,19 +491,81 @@ export class BarcodeGenerator {
       currentX += actualBarWidth
     }
 
-    // 绘制文本
+    // 绘制文本（修正位置计算）
     if (displayText) {
       this.setFillStyle(ctx, textColor)
       this.setFont(ctx, `${fontSize}px Arial`)
       this.setTextAlign(ctx, 'center')
       const textX = x + width / 2
-      const textY = y + height - 5
+      const textY = y + barcodeY + barcodeHeight + fontSize + 5 // 修正文字位置
       this.fillText(ctx, text, textX, textY)
     }
 
     // 兼容小程序，需要调用draw方法
     if ('draw' in ctx && typeof ctx.draw === 'function') {
       ctx.draw()
+    }
+  }
+
+  /**
+   * 小程序优化版本：绘制条形码到Canvas（解决比例问题）
+   * @param ctx Canvas上下文
+   * @param barcodeData 条形码数据
+   * @param canvasWidth Canvas实际宽度（px）
+   * @param canvasHeight Canvas实际高度（px）
+   */
+  drawOnCanvasWithFixedRatio(
+    ctx: CanvasContext,
+    barcodeData: BarcodeData,
+    canvasWidth: number,
+    canvasHeight: number
+  ): void {
+    const { encoded, options, text } = barcodeData
+    const { color, backgroundColor, displayText, fontSize, textColor, margin } =
+      options
+
+    // 清除背景
+    this.setFillStyle(ctx, backgroundColor)
+    this.fillRect(ctx, 0, 0, canvasWidth, canvasHeight)
+
+    // 计算文字区域
+    const textAreaHeight = displayText ? Math.max(fontSize * 1.5, 30) : 0
+
+    // 计算条形码绘制区域
+    const barcodeHeight = canvasHeight - margin * 2 - textAreaHeight
+    const barcodeY = margin
+    const availableWidth = canvasWidth - margin * 2
+    const totalBars = encoded.length
+
+    // 使用固定比例计算条宽
+    const barWidth = Math.max(2, Math.floor(availableWidth / totalBars))
+    const actualBarcodeWidth = totalBars * barWidth
+    const barcodeStartX = margin + (availableWidth - actualBarcodeWidth) / 2
+
+    // 绘制条形码
+    this.setFillStyle(ctx, color)
+    let currentX = barcodeStartX
+
+    for (let i = 0; i < encoded.length; i++) {
+      if (encoded[i] === '1') {
+        this.fillRect(ctx, currentX, barcodeY, barWidth, barcodeHeight)
+      }
+      currentX += barWidth
+    }
+
+    // 绘制文本
+    if (displayText) {
+      this.setFillStyle(ctx, textColor)
+      this.setFont(ctx, `${Math.max(fontSize, 16)}px Arial`)
+      this.setTextAlign(ctx, 'center')
+      const textX = canvasWidth / 2
+      const textY = barcodeY + barcodeHeight + fontSize + 10
+      this.fillText(ctx, text, textX, textY)
+    }
+
+    // 执行绘制
+    if ('draw' in ctx && typeof ctx.draw === 'function') {
+      ctx.draw(true) // true 表示清除之前的内容
     }
   }
 
