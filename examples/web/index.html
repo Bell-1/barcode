@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@fuse/barcode - Web 示例</title>
+    <style>
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        line-height: 1.6;
+      }
+      .demo-section {
+        margin: 30px 0;
+        padding: 20px;
+        border: 1px solid #e1e5e9;
+        border-radius: 8px;
+        background: #f8f9fa;
+      }
+      .demo-section h3 {
+        margin-top: 0;
+        color: #2c3e50;
+      }
+      .form-group {
+        margin: 15px 0;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+      }
+      input,
+      select {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+      }
+      button {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      .result {
+        margin-top: 20px;
+        padding: 15px;
+        background: white;
+        border-radius: 4px;
+        border: 1px solid #dee2e6;
+      }
+      .result img {
+        max-width: 100%;
+        height: auto;
+      }
+      canvas {
+        border: 1px solid #ddd;
+        margin: 10px 0;
+      }
+      .error {
+        color: #dc3545;
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        padding: 10px;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>@fuse/barcode Web 示例</h1>
+    <p>这个示例展示了如何在 Web 环境中使用 @fuse/barcode 生成条形码。</p>
+
+    <!-- Base64 图片生成 -->
+    <div class="demo-section">
+      <h3>📸 Base64 图片生成</h3>
+      <form id="base64Form">
+        <div class="form-group">
+          <label for="base64Data">条形码内容：</label>
+          <input
+            type="text"
+            id="base64Data"
+            value="Hello World"
+            placeholder="输入要编码的内容"
+          />
+        </div>
+        <div class="form-group">
+          <label for="base64Type">条形码类型：</label>
+          <select id="base64Type">
+            <option value="CODE128">CODE128</option>
+            <option value="CODE39">CODE39</option>
+            <option value="EAN13">EAN13</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="base64Width">宽度：</label>
+          <input
+            type="number"
+            id="base64Width"
+            value="300"
+            min="100"
+            max="800"
+          />
+        </div>
+        <div class="form-group">
+          <label for="base64Height">高度：</label>
+          <input
+            type="number"
+            id="base64Height"
+            value="120"
+            min="50"
+            max="300"
+          />
+        </div>
+        <button type="submit">生成条形码图片</button>
+      </form>
+      <div id="base64Result" class="result" style="display: none">
+        <h4>生成结果：</h4>
+        <div id="base64Image"></div>
+      </div>
+    </div>
+
+    <!-- Canvas 绘制 -->
+    <div class="demo-section">
+      <h3>🎨 Canvas 绘制</h3>
+      <form id="canvasForm">
+        <div class="form-group">
+          <label for="canvasData">条形码内容：</label>
+          <input
+            type="text"
+            id="canvasData"
+            value="CANVAS123"
+            placeholder="输入要编码的内容"
+          />
+        </div>
+        <div class="form-group">
+          <label for="canvasType">条形码类型：</label>
+          <select id="canvasType">
+            <option value="CODE128">CODE128</option>
+            <option value="CODE39">CODE39</option>
+            <option value="EAN13">EAN13</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="canvasColor">条形码颜色：</label>
+          <input type="color" id="canvasColor" value="#000000" />
+        </div>
+        <div class="form-group">
+          <label for="canvasBgColor">背景颜色：</label>
+          <input type="color" id="canvasBgColor" value="#ffffff" />
+        </div>
+        <button type="submit">在 Canvas 上绘制</button>
+      </form>
+      <div id="canvasResult" class="result" style="display: none">
+        <h4>Canvas 绘制结果：</h4>
+        <canvas id="barcodeCanvas" width="400" height="150"></canvas>
+      </div>
+    </div>
+
+    <!-- 使用 UMD 版本 -->
+    <script src="../dist/index.umd.js"></script>
+
+    <script>
+      // Base64 图片生成
+      document
+        .getElementById('base64Form')
+        .addEventListener('submit', function (e) {
+          e.preventDefault()
+
+          const data = document.getElementById('base64Data').value
+          const type = document.getElementById('base64Type').value
+          const width = parseInt(document.getElementById('base64Width').value)
+          const height = parseInt(document.getElementById('base64Height').value)
+
+          try {
+            const result = BarcodeGenerator.generateBarcode(data, type, {
+              width: width,
+              height: height,
+              displayText: true,
+            })
+
+            const resultDiv = document.getElementById('base64Result')
+            const imageDiv = document.getElementById('base64Image')
+
+            if (result.success) {
+              imageDiv.innerHTML = `<img src="${result.base64}" alt="Generated Barcode" />`
+              resultDiv.style.display = 'block'
+            } else {
+              imageDiv.innerHTML = `<div class="error">生成失败: ${result.error}</div>`
+              resultDiv.style.display = 'block'
+            }
+          } catch (error) {
+            const resultDiv = document.getElementById('base64Result')
+            const imageDiv = document.getElementById('base64Image')
+            imageDiv.innerHTML = `<div class="error">生成失败: ${error.message}</div>`
+            resultDiv.style.display = 'block'
+          }
+        })
+
+      // Canvas 绘制
+      document
+        .getElementById('canvasForm')
+        .addEventListener('submit', function (e) {
+          e.preventDefault()
+
+          const data = document.getElementById('canvasData').value
+          const type = document.getElementById('canvasType').value
+          const color = document.getElementById('canvasColor').value
+          const backgroundColor = document.getElementById('canvasBgColor').value
+
+          const canvas = document.getElementById('barcodeCanvas')
+          const ctx = canvas.getContext('2d')
+
+          // 清除 canvas
+          ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+          try {
+            BarcodeGenerator.drawBarcodeOnCanvas(ctx, data, type, 0, 0, {
+              width: canvas.width,
+              height: canvas.height,
+              color: color,
+              backgroundColor: backgroundColor,
+              displayText: true,
+            })
+
+            document.getElementById('canvasResult').style.display = 'block'
+          } catch (error) {
+            alert('绘制失败: ' + error.message)
+          }
+        })
+
+      // 页面加载时生成默认示例
+      window.addEventListener('load', function () {
+        // 触发默认的 base64 生成
+        document.getElementById('base64Form').dispatchEvent(new Event('submit'))
+
+        // 触发默认的 canvas 绘制
+        document.getElementById('canvasForm').dispatchEvent(new Event('submit'))
+      })
+    </script>
+  </body>
+</html>

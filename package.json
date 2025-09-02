@@ -1,0 +1,88 @@
+{
+  "name": "@innel/barcode",
+  "version": "1.0.0",
+  "description": "现代化条形码生成器 - 支持多种格式，兼容Web、H5和微信小程序环境",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "build:watch": "rollup -c -w",
+    "dev": "rollup -c -w",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "prebuild": "npm run clean",
+    "prepack": "npm run build",
+    "prepublishOnly": "npm run lint && npm run type-check && npm run test && npm run build",
+    "preversion": "npm run lint && npm run type-check && npm run test",
+    "postpublish": "echo '✅ 包已成功发布到 npm'",
+    "check-publish": "./scripts/pre-publish.sh",
+    "example:web": "cd examples/web && npm start",
+    "example:uniapp": "cd examples/uniapp && npm run dev:h5",
+    "release:patch": "npm version patch && npm publish",
+    "release:minor": "npm version minor && npm publish",
+    "release:major": "npm version major && npm publish"
+  },
+  "keywords": [
+    "barcode",
+    "条形码",
+    "code128",
+    "code39",
+    "ean13",
+    "canvas",
+    "base64",
+    "uniapp",
+    "小程序",
+    "h5",
+    "typescript",
+    "generator"
+  ],
+  "author": {
+    "name": "Your Name",
+    "email": "your.email@example.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/barcode.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/barcode/issues"
+  },
+  "homepage": "https://github.com/yourusername/barcode#readme",
+  "engines": {
+    "node": ">=12.0.0",
+    "npm": ">=6.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.5",
+    "@types/node": "^20.6.0",
+    "@typescript-eslint/eslint-plugin": "^6.7.0",
+    "@typescript-eslint/parser": "^6.7.0",
+    "eslint": "^8.49.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "prettier": "^3.0.3",
+    "rollup": "^3.29.0",
+    "rollup-plugin-typescript2": "^0.35.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.2.2"
+  },
+  "packageManager": "pnpm@10.12.4"
+}

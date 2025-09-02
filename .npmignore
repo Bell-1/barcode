@@ -1,0 +1,64 @@
+# 源码和开发文件
+src/
+tests/
+examples/
+
+# 配置文件
+.eslintrc.js
+.prettierrc.js
+jest.config.js
+rollup.config.js
+tsconfig.json
+
+# 构建工具文件
+.github/
+.vscode/
+.idea/
+
+# 文档和示例（保留核心文档）
+# README.md 和 LICENSE 会自动包含
+
+# 日志和缓存
+*.log
+node_modules/
+.npm/
+.nyc_output/
+coverage/
+
+# 开发环境文件
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# OS 生成的文件
+.DS_Store
+Thumbs.db
+
+# 编辑器文件
+*.swp
+*.swo
+*~
+
+# 临时文件
+tmp/
+temp/
+
+# 版本控制
+.git/
+.gitignore
+
+# 包管理器文件
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
+
+# TypeScript 编译缓存
+*.tsbuildinfo
+
+# 测试覆盖率
+coverage/
+
+# 其他
+.npmrc
