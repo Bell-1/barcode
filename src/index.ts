@@ -1,5 +1,5 @@
 /**
- * @fuse/barcode - 现代化条形码生成器
+ * @innel/barcode - 现代化条形码生成器
  *
  * 支持多种条形码格式，兼容 Web、H5 和微信小程序环境
  * 提供 Canvas 绘制和 base64 图片输出功能

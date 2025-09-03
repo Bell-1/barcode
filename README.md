@@ -1,4 +1,3 @@
-# @fuse/barcode
 # @innel/barcode 📊
 
 > 现代化条形码生成器 - 完美支持 Web、H5 和微信小程序环境，专为跨平台开发优化
@@ -474,7 +473,7 @@ interface BarcodeResult {
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { generateBarcode, drawBarcodeOnCanvas } from '@fuse/barcode'
+import { generateBarcode, drawBarcodeOnCanvas } from '@innel/barcode'
 
 const canvasRef = ref<HTMLCanvasElement>()
 const barcodeImage = ref('')

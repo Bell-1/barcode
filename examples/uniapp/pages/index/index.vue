@@ -1,7 +1,7 @@
 <template>
   <view class="container">
     <view class="header">
-      <text class="title">@fuse/barcode UniApp 示例</text>
+      <text class="title">@innel/barcode UniApp 示例</text>
     </view>
 
     <!-- 配置表单 -->
@@ -71,7 +71,7 @@
 </template>
 
 <script>
-import { generateBarcode, drawBarcodeOnCanvas } from '@fuse/barcode'
+import { generateBarcode, drawBarcodeOnCanvas } from '@innel/barcode'
 
 export default {
   data() {

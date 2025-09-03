@@ -7,7 +7,7 @@
 确保你已经：
 - 登录到 npm：`npm login`
 - 验证登录状态：`npm whoami`
-- 确认包名可用：`npm view @fuse/barcode`（应该返回 404）
+- 确认包名可用：`npm view @innel/barcode`（应该返回 404）
 
 ### 2. 发布前检查
 
@@ -56,10 +56,10 @@ npm publish
 
 ```bash
 # 检查包是否发布成功
-npm view @fuse/barcode
+npm view @innel/barcode
 
 # 安装并测试
-npm install @fuse/barcode
+npm install @innel/barcode
 ```
 
 ## 📦 包内容
@@ -67,7 +67,7 @@ npm install @fuse/barcode
 发布的包将包含：
 
 ```
-@fuse/barcode/
+@innel/barcode/
 ├── dist/              # 构建输出
 │   ├── index.js       # CommonJS
 │   ├── index.esm.js   # ES Module  
@@ -111,8 +111,8 @@ npm install @fuse/barcode
 
 ## 🚨 注意事项
 
-1. **首次发布**：确保包名 `@fuse/barcode` 在 npm 上可用
-2. **作用域包**：`@fuse/` 是作用域包，需要组织权限或付费账户
+1. **首次发布**：确保包名 `@innel/barcode` 在 npm 上可用
+2. **作用域包**：`@innel/` 是作用域包，需要组织权限或付费账户
 3. **版本管理**：遵循 [语义化版本](https://semver.org/lang/zh-CN/)
 4. **安全检查**：发布前会自动运行所有检查（lint、test、build）
 
@@ -139,5 +139,5 @@ npm token create             # 发布令牌
 
 发布后可以查看包的统计信息：
 
-- npm 页面：https://www.npmjs.com/package/@fuse/barcode
-- 下载统计：https://npm-stat.com/charts.html?package=@fuse/barcode
+- npm 页面：https://www.npmjs.com/package/@innel/barcode
+- 下载统计：https://npm-stat.com/charts.html?package=@innel/barcode

@@ -3,7 +3,7 @@ import {
   generateBarcode,
   drawBarcodeOnCanvas,
   BarcodeType,
-} from '@fuse/barcode'
+} from '@innel/barcode'
 import './App.css'
 
 const App: React.FC = () => {
@@ -82,7 +82,7 @@ const App: React.FC = () => {
 
   return (
     <div className="app">
-      <h1>@fuse/barcode React 示例</h1>
+      <h1>@innel/barcode React 示例</h1>
 
       <div className="demo-container">
         <div className="form-section">

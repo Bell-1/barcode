@@ -44,10 +44,10 @@ npm pack --dry-run
 
 ```bash
 # 查看包信息
-npm view @fuse/barcode
+npm view @innel/barcode
 
 # 测试安装
-npm install @fuse/barcode@latest
+npm install @innel/barcode@latest
 ```
 
 ## 🆘 常见问题

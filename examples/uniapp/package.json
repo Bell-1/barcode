@@ -1,7 +1,7 @@
 {
   "name": "barcode-uniapp-example",
   "version": "1.0.0",
-  "description": "@fuse/barcode UniApp 示例",
+  "description": "@innel/barcode UniApp 示例",
   "main": "main.js",
   "scripts": {
     "dev:h5": "uni build --watch --platform h5",
@@ -10,7 +10,7 @@
     "build:mp-weixin": "uni build --platform mp-weixin"
   },
   "dependencies": {
-    "@fuse/barcode": "^1.0.0"
+    "@innel/barcode": "^1.0.0"
   },
   "devDependencies": {
     "@dcloudio/uni-cli": "latest"
